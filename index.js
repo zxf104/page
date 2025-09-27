@@ -1,8 +1,3 @@
-// index.js
-
-// --- 1. 存储您的完整 HTML 内容（包括 CSS 和 JavaScript） ---
-// Cloudflare Worker 的核心思想是将内容作为字符串返回。
-const HTML_CONTENT = `
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -144,6 +139,7 @@ const HTML_CONTENT = `
     </style>
 </head>
 <body>
+    <!-- 左侧导航 -->
     <div class="sidebar">
         <div class="logo">
             <h1>导航中心</h1>
@@ -169,6 +165,7 @@ const HTML_CONTENT = `
         </div>
     </div>
     
+    <!-- 右侧内容区 -->
     <div class="content">
         <div id="home" class="content-section active">
             <h2>欢迎来到我们的网站</h2>
@@ -229,7 +226,6 @@ const HTML_CONTENT = `
         document.addEventListener('DOMContentLoaded', function() {
             const navItems = document.querySelectorAll('.nav-items li');
             const contentSections = document.querySelectorAll('.content-section');
-            const contentArea = document.querySelector('.content');
             
             navItems.forEach(item => {
                 item.addEventListener('click', function() {
@@ -241,51 +237,9 @@ const HTML_CONTENT = `
                     this.classList.add('active');
                     const targetId = this.getAttribute('data-target');
                     document.getElementById(targetId).classList.add('active');
-                    
-                    // 切换内容后将内容区域滚动到顶部
-                    if (contentArea) {
-                        contentArea.scrollTo({
-                            top: 0,
-                            behavior: 'smooth' 
-                        });
-                    }
                 });
             });
         });
     </script>
 </body>
 </html>
-`;
-
-// --- 2. Worker 脚本入口 ---
-
-// 监听所有的 fetch 请求
-addEventListener('fetch', event => {
-  // 阻止 Worker 脚本处理非根路径的请求（可选，但通常 Worker 只需要处理主页）
-  const url = new URL(event.request.url);
-  if (url.pathname !== '/' && url.pathname !== '/index.html') {
-    // 对于非主页请求，返回 404 响应
-    return event.respondWith(new Response('404 Not Found', { status: 404 }));
-  }
-  
-  // 处理请求，返回 HTML 内容
-  event.respondWith(handleRequest(event.request));
-});
-
-/**
- * 处理传入的 HTTP 请求。
- * @param {Request} request 
- */
-async function handleRequest(request) {
-  // 返回一个新的 Response 对象，其中包含 HTML 内容
-  return new Response(HTML_CONTENT, {
-    headers: {
-      // 必须指定内容类型为 text/html，浏览器才能正确解析
-      'Content-Type': 'text/html;charset=UTF-8',
-      
-      // 可选：设置缓存策略，让 Cloudflare 缓存 Worker 响应
-      'Cache-Control': 'public, max-age=3600' // 缓存 1 小时
-    },
-    status: 200 // HTTP 状态码
-  });
-}
